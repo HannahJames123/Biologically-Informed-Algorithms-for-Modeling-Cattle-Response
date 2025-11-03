@@ -1,5 +1,5 @@
 # Biologically-Informed Algorithms for Modeling Cattle Response  
-by Hannah James (Cornell) & Scott Baron (CSF)  
+by Hannah James (Cornell)  
 
 ## Overview  
 This repository hosts the code underlying the manuscript *“Biologically-informed algorithmic framework to simulate cattle responses to auditory cues in virtual fencing systems”*. The study integrates behavioural biology, animal-welfare science, and computational modelling to simulate how cattle (Bos taurus) respond to auditory cues in virtual fencing scenarios.  
