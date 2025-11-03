@@ -1,0 +1,21 @@
+Study,Observed,params,EqRef,KeyUse
+V1_Lee2009,Avoidance 44% (S1) to 73% (S4); t50≈2.5,"{'gamma': 1.1, 't50': 2.5, 'A50': 70, 's': 0.3, 'fopt': 2000, 'sigma_f': 1000}",Eq. 3,"Fit γ, t50 (learning)"
+V2_Waynert1999,HR: 107/101/95 bpm (voice/clanging/silence); movement peaks +35%,"{'A50': 70, 's': 0.3, 'H': 0.1, 'N': 1.2}","Eq. 8 (with Eq. 2, 5)",Amplitude & noise-type multipliers
+V3_Campbell2017,Avoidance ≥96.7% at 48 h; ~82% at 24 h,"{'lambda': 0.071, 't50': 9.8}",Eq. 9 (with Eq. 3),λ / avoidance calibration
+V4_Hamidi2024,Mode change 13.9 h→5.6 h; success 79%→99%,"{'gamma1': 0.29, 'gamma2': 2.1, 't50': 7}",Eq. 3,"Phase-specific γ, t50"
+V5_Colusso2020,Turn 88% (group) vs 36% (individual); AT–EP 45%→14%,"{'g': 1.2, 's': 0.15}",Eq. 9 (with Eq. 6),Group multiplier g
+V6_MotaRojas2024,"Cortisol −18%, serotonin +22%, milk +55%","{'N': 0.8, 'h': 0.15, 'd': 0.1}",Eq. 8 (with Eq. 5),Calm N(n) < 1
+V7_Lee2008,No cortisol/β-endorphin change; HR +8 bpm; flight −1.8 s,{'Nshock': 1.4},Eq. 8 (with Eq. 5),Shock multiplier
+V8_Gibbons2009,Sensitivity scalar 0.7–1.5; r=0.65,{'alpha': 1.0},Eq. 8 (with Eq. 7),Personality α
+V9_Aaser2022,"Warnings −58%, pulses −71%","{'g': 1.0, 'k2': 1.0}","Eq. 9 (with Eq. 6, 7)",Herd + personality
+V10_Umstatter2009,"Turn success 49%, 58%, 53% overall","{'k2': 10, 'theta': 0.6}",Eq. 9 (L(t) omitted),Audio baseline (no learning)
+V11_Moreira2023,8 kHz: 64.3% vs 100% ear orientation (B. taurus vs indicus); 65 Hz alert 67.6% vs 100%,"{'fopt': 8000, 'sigma_f': 1800}",Eq. 1,Breed level F(f)
+V12_Crouch2024,Tongue rolling 2.01→0.04; locomotion +840–900%; positive social +494%,"{'A50': 82, 's': 0.15, 'lambda': 0.25}","Eq. 8 (with Eq. 4, 5)",Enrichment effect
+V13_Nyamuryekunge2023,Containment 70.7%→98.0%; cues −66%→−75%,"{'g': 1.2, 'k2': 5, 'theta': 0.5}","Eq. 9, Eq. 8",Learning + motion
+V14_Keshavarzi2020,Turn 76.2% (social) vs 52.6% (solo),"{'g': 1.2, 'k2': 5, 'theta': 0.5}",Eq. 9 (with Eq. 6),Social amplification
+V15_Lange2020,HR drop 5 bpm (live) vs 1.5 bpm (playback); HF power +30% (live),"{'A50': 82, 's': 0.3, 'N': 1.1}",Eq. 8 (with Eq. 5),Speech nuance via N(n)
+V16_Broucek2014,>85 dB: ↓ milk/feed; cortisol ↑; agitation persists,"{'N': 1.2, 'H': 0.7}",Eq. 8 (with Eq. 4),Chronic stress profile
+V17_Umstatter2013,Zone use 53.9%→36.2% (−17.7%) near speaker,"{'N': 1.2, 'H': 0.6}",Eq. 8,Speaker deterrent
+V18_Olczak2023,110 dB shouting: withdrawal; 90 dB machinery: habituation + residual agitation,"{'lambda': 0.25, 'N': 1.2, 'v': 1.2}","Eq. 8 (with Eq. 4, 5)",Acute vs chronic
+V19_Ciborowska2021,"Calm: cortisol ↓, milk +12.6%; Rock: stress ↑, milk ↓","{'A50': 82, 's': 0.3, 'N': 1.1}",Eq. 8 (with Eq. 5),Genre effect
+V20_James2025,8 kHz/13 kHz tones: minimal response in alley,"{'fopt': 2000, 'sigma_f': 1000, 'A': 85}",Eq. 8 (with Eq. 1),Cue design check
