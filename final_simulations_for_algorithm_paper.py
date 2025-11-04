@@ -3037,77 +3037,6 @@ for name in TO_RENDER:
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Define colorblind-safe palette (True row)
-COLORS = {
-    "train": "#E7298A",   # magenta
-    "post": "#66A61E",    # green
-    "audio": "#E7298A",   # same as train
-    "shock": "#66A61E",   # same as post
-}
-
-# === Enter your median and IQR numbers (from your console output) ===
-metrics = {
-    "baseline": {"train_s_per_day": (0.611, 0.611, 0.944), "post_s_per_day": (0.119, 0.095, 0.143), "esc_percent": (36.2, 32.4, 37.9)},
-    "cue_only_post": {"train_s_per_day": (0.611, 0.611, 0.944), "post_s_per_day": (0.000, 0.000, 0.000), "esc_percent": (24.3, 23.4, 29.3)},
-    "low_salience": {"train_s_per_day": (0.667, 0.667, 0.889), "post_s_per_day": (0.095, 0.071, 0.190), "esc_percent": (38.2, 37.7, 38.5)},
-    "temptation_edge": {"train_s_per_day": (0.833, 0.611, 0.889), "post_s_per_day": (0.119, 0.095, 0.143), "esc_percent": (40.5, 36.5, 42.3)},
-    "no_bonds": {"train_s_per_day": (0.611, 0.611, 0.944), "post_s_per_day": (0.119, 0.095, 0.143), "esc_percent": (36.2, 32.4, 37.9)},
-    "narrow_band": {"train_s_per_day": (0.278, 0.222, 0.278), "post_s_per_day": (0.024, 0.000, 0.048), "esc_percent": (40.0, 37.5, 53.3)},
-}
-
-scenarios = list(metrics.keys())
-
-# ---------- Figure A: shocks·cow⁻¹·day⁻¹ (training vs post) ----------
-train_med = [metrics[s]["train_s_per_day"][0] for s in scenarios]
-train_q1  = [metrics[s]["train_s_per_day"][1] for s in scenarios]
-train_q3  = [metrics[s]["train_s_per_day"][2] for s in scenarios]
-train_err = np.array([[m - q1, q3 - m] for m, q1, q3 in zip(train_med, train_q1, train_q3)]).T
-
-post_med = [metrics[s]["post_s_per_day"][0] for s in scenarios]
-post_q1  = [metrics[s]["post_s_per_day"][1] for s in scenarios]
-post_q3  = [metrics[s]["post_s_per_day"][2] for s in scenarios]
-post_err = np.array([[m - q1, q3 - m] for m, q1, q3 in zip(post_med, post_q1, post_q3)]).T
-
-x = np.arange(len(scenarios))
-w = 0.38
-
-plt.figure(figsize=(9, 4.5))
-plt.bar(x - w/2, train_med, width=w, yerr=train_err, capsize=4,
-        label="Training", color=COLORS["train"])
-plt.bar(x + w/2, post_med,  width=w, yerr=post_err,  capsize=4,
-        label="Post-learning", color=COLORS["post"])
-
-plt.xticks(x, scenarios, rotation=20, ha="right", fontsize=12)
-plt.ylabel("Shocks per cow per day (median, IQR)", fontsize=15)
-plt.legend(fontsize=13)
-plt.yticks(fontsize=12)
-
-plt.tight_layout()
-plt.savefig("fig_shocks_per_cow_per_day.png", dpi=600, bbox_inches="tight")
-plt.show()
-
-# ---------- Figure B: overall escalation % ----------
-esc_med = [metrics[s]["esc_percent"][0] for s in scenarios]
-esc_q1  = [metrics[s]["esc_percent"][1] for s in scenarios]
-esc_q3  = [metrics[s]["esc_percent"][2] for s in scenarios]
-esc_err = np.array([[m - q1, q3 - m] for m, q1, q3 in zip(esc_med, esc_q1, esc_q3)]).T
-
-plt.figure(figsize=(9.2, 4.6))
-plt.bar(x, esc_med, yerr=esc_err, capsize=4,
-        color=COLORS["audio"], edgecolor="black", linewidth=0.9)
-
-plt.xticks(x, scenarios, rotation=20, ha="right", fontsize=12)
-plt.ylabel("Overall escalation (%) (median, IQR)", fontsize=15)
-plt.yticks(fontsize=12)
-plt.grid(axis="y", linestyle=":", linewidth=0.7, alpha=0.6)
-
-plt.subplots_adjust(bottom=0.2, left=0.15, right=0.98, top=0.98)
-plt.savefig("fig_escalation_percent.png", dpi=600, bbox_inches="tight")
-plt.show()
-
-import numpy as np
-import matplotlib.pyplot as plt
-
 # -------- palette (from your swatch) --------
 COL_GRAY   = "#cecece"
 COL_PURPLE = "#a559aa"  # Training
@@ -3192,4 +3121,325 @@ ax.grid(False)  # remove horizontal grid lines
 fig.subplots_adjust(left=0.16, bottom=0.25, right=0.99, top=0.99)
 fig.savefig("fig_escalation_percent.png", dpi=600, bbox_inches="tight")
 plt.show()
+
+
+
+import sys, platform
+import numpy as np
+import pandas as pd
+import matplotlib
+import scipy
+
+print("Python version:", sys.version)
+print("Platform:", platform.platform())
+print("NumPy version:", np.__version__)
+print("Pandas version:", pd.__version__)
+print("Matplotlib version:", matplotlib.__version__)
+print("SciPy version:", scipy.__version__)
+
+# ================================================================
+# Full Self-Contained Model + Robustness & Sensitivity Analysis
+# Biologically-Informed Algorithms for Modeling Cattle Response
+# ================================================================
+
+import numpy as np
+import pandas as pd
+from itertools import product
+from scipy.stats import spearmanr
+
+# ================================================================
+# 1. Global Parameters
+# ================================================================
+f_opt = 2000         # Hz - auditory sensitivity peak
+sigma_f = 1000       # Hz - std. deviation of auditory tuning
+A_50 = 70            # dB - half-max amplitude response
+s = 0.30             # logistic slope for amplitude response
+gamma = 1.1          # learning rate constant
+t_50 = 2.5           # half-learning time (sessions/hours)
+lambda_h = 0.1       # habituation rate constant
+k2 = 7.0             # sigmoid steepness for turn probability
+theta = 0.3          # decision threshold
+NOISE_MAP = {"tone": 1.0, "clanging": 1.1, "shouting": 1.3}
+
+# ================================================================
+# 2. Model Equations (Eqs. 1–9)
+# ================================================================
+def F(f):       # frequency sensitivity
+    return np.exp(-((f - f_opt)**2) / (2 * sigma_f**2))
+
+def S(A):       # amplitude response
+    return 1 / (1 + np.exp(-s * (A - A_50)))
+
+def L(t):       # learning logistic
+    return 1 / (1 + np.exp(-gamma * (t - t_50)))
+
+def H(t):       # habituation
+    return np.exp(-lambda_h * t)
+
+def N(n):       # noise multiplier
+    return NOISE_MAP.get(n, 1.0)
+
+def P_turn(SA, Ff, Lt, g=1.0):  # turn probability
+    return 1 / (1 + np.exp(-g * k2 * (SA * Ff * Lt - theta)))
+
+# ================================================================
+# 3. Model Wrapper
+# ================================================================
+global_params = {"k1": 1.0, "k2": 7.0, "theta": 0.3}
+
+def run_model(p):
+    # Ensure required parameters are present, use defaults otherwise
+    f = p.get("fopt", f_opt)
+    A = p.get("A", A_50) # Use A_50 as default for A
+    time_param = p.get("t50", t_50) # Use t_50 as default for t, renamed to time_param
+    g = p.get("g", 1.0)
+    n = p.get("noise", "tone") # Use "tone" as default for noise
+
+    SA = S(A); Ff = F(f); Lt = L(time_param); Ht = H(time_param); Nn = N(n) # Use time_param
+    Pturn = P_turn(SA, Ff, Lt, g)
+    # Use k1 from global_params
+    return float(np.clip(global_params["k1"] * Ff * SA * Lt * Nn * Ht * Pturn, 0, 1))
+
+# ================================================================
+# 4. Validation Dataset (20 studies)
+# ================================================================
+data = [
+    {"Study":"V1 – Lee et al. 2009","Observed":"Avoidance 44–73%","params":{"fopt":2000,"A":70,"t50":2.5}},
+    {"Study":"V2 – Waynert et al. 1999","Observed":"HR 107/101/95 bpm","params":{"A":70,"lambda_h":0.1}}, # Corrected 'H' to 'lambda_h'
+    {"Study":"V3 – Campbell et al. 2017","Observed":"Avoidance ≥96.7% at 48h","params":{"lambda_h":0.071,"t50":9.8}},
+    {"Study":"V4 – Hamidi et al. 2024","Observed":"Mode change 13.9→5.6h","params":{"gamma":0.29,"t50":7}},
+    {"Study":"V5 – Colusso et al. 2020","Observed":"Turn 88% vs 36%","params":{"g":1.2,"s":0.15}},
+    {"Study":"V6 – Mota Rojas et al. 2024","Observed":"Cortisol −18%, serotonin +22%","params":{"noise":"clanging","lambda_h":0.15}}, # Corrected 'Nn' to 'noise', 'h' to 'lambda_h'
+    {"Study":"V7 – Lee et al. 2008","Observed":"Shock HR +8 bpm","params":{"noise":"shock"}}, # Added noise type for shock
+    {"Study":"V8 – Gibbons et al. 2009","Observed":"r=0.65","params":{"alpha":1.0}}, # 'alpha' is not used in run_model, keep for metadata
+    {"Study":"V9 – Aaser et al. 2022","Observed":"Warnings −58%, pulses −71%","params":{"g":1.1}},
+    {"Study":"V10 – Umstatter et al. 2009","Observed":"Turn success 49–58%","params":{"k2":10,"theta":0.6}},
+    {"Study":"V11 – Moreira et al. 2023","Observed":"Breed 8kHz vs 65Hz","params":{"fopt":8000,"sigma_f":1500}},
+    {"Study":"V12 – Crouch et al. 2024","Observed":"Tongue rolling 2.0→0.04","params":{"A":82,"lambda_h":0.25}},
+    {"Study":"V13 – Nyamuryekung’e et al. 2023","Observed":"Containment 71→98%","params":{"g":1.2,"k2":5}},
+    {"Study":"V14 – Keshavarzi et al. 2020","Observed":"Turn 76% vs 53%","params":{"g":1.2,"k2":5}},
+    {"Study":"V15 – Lange et al. 2020","Observed":"HR drop 5 bpm","params":{"A":82,"noise":"tone"}}, # Corrected 'Nn' to 'noise'
+    {"Study":"V16 – Brouček et al. 2014","Observed":">85 dB stress","params":{"A":90,"noise":"shouting"}}, # Added A, Corrected 'Nn' to 'noise'
+    {"Study":"V17 – Umstatter et al. 2013","Observed":"Zone use 54→36%","params":{"noise":"clanging"}}, # Corrected 'Nn' to 'noise'
+    {"Study":"V18 – Olczak et al. 2023","Observed":"110 dB withdrawal","params":{"A":110,"valence":1.2}}, # 'valence' not used, keep for metadata
+    {"Study":"V19 – Ciborowska et al. 2021","Observed":"Calm vs Rock Δmilk","params":{"A":82,"noise":"clanging"}}, # Corrected 'Nn' to 'noise'
+    {"Study":"V20 – James et al. 2025","Observed":"8–13 kHz no response","params":{"fopt":2000,"sigma_f":1000}},
+]
+studies = pd.DataFrame(data)
+studies.to_csv("validation_studies_metadata.csv", index=False)
+
+# ================================================================
+# 5. Leave-One-Study-Out (LOSO) Consistency
+# ================================================================
+def fit_globals(train_keys):
+    best, best_var = None, 1e9
+    # Use global_params for default values if not in study params
+    temp_global_params = global_params.copy()
+    for k1, k2_val, th in product([0.8,1.0,1.2],[6,7,8],[0.2,0.3,0.4]):
+        temp_global_params["k1"] = k1
+        temp_global_params["k2"] = k2_val # Use a different variable name
+        temp_global_params["theta"] = th
+        preds=[]
+        for key in train_keys:
+            rec=studies.loc[studies["Study"]==key,"params"].values[0]
+            # Merge study-specific params with current global params for prediction
+            merged_params = temp_global_params.copy()
+            merged_params.update(rec)
+            # Ensure 't50' is passed as 'time_param' to run_model
+            if 't50' in merged_params:
+                merged_params['time_param'] = merged_params.pop('t50')
+            preds.append(run_model(merged_params))
+        var=np.var(preds)
+        if var<best_var:
+            best_var,best=var,{"k1":k1,"k2":k2_val,"theta":th} # Use k2_val here
+    # Update the actual global_params after finding the best fit
+    global_params.update(best)
+    return best
+
+loso=[]
+keys=studies["Study"].tolist()
+for holdout in keys:
+    train=[k for k in keys if k!=holdout]
+    globals_fit=fit_globals(train)
+    preds=[]
+    for k in train:
+        rec=studies.loc[studies["Study"]==k,"params"].values[0]
+        # Merge study-specific params with the now updated global params
+        merged_params = global_params.copy()
+        merged_params.update(rec)
+        # Ensure 't50' is passed as 'time_param' to run_model
+        if 't50' in merged_params:
+             merged_params['time_param'] = merged_params.pop('t50')
+        preds.append(run_model(merged_params))
+    loso.append({"HeldOut":holdout,**globals_fit,"TrainVar":np.var(preds)})
+pd.DataFrame(loso).to_csv("loso_globals_results.csv",index=False)
+
+# ================================================================
+# 6. ±20% Sensitivity
+# ================================================================
+def oat(p):
+    # Use global_params as the starting point and update with study-specific params
+    current_params = global_params.copy()
+    current_params.update(p)
+
+    # Ensure 't50' is handled correctly for run_model
+    if 't50' in current_params:
+        current_params['time_param'] = current_params.pop('t50')
+
+    base=run_model(current_params)
+    res=[]
+
+    for k,v in current_params.items():
+        # Only vary parameters that are floats or integers and are defined in the model equations or global_params
+        if not isinstance(v,(int,float)): continue
+        if k not in ['A', 'fopt', 'time_param', 'g', 'k1', 'k2', 'theta', 's', 'gamma', 'lambda_h']: continue # Only vary relevant parameters, use 'time_param'
+
+        for fac in (0.8,1.2):
+            q=current_params.copy(); q[k]=v*fac
+            new=run_model(q)
+            # Calculate delta relative to the base prediction for this study's parameters
+            res.append({"param":k,"delta":100*(new-base)/(base+1e-9)})
+    return pd.DataFrame(res)
+
+sens_list=[]
+for _,row in studies.iterrows():
+    # Pass the study's parameters to oat
+    df=oat(row["params"])
+    df.insert(0,"Study",row["Study"])
+    sens_list.append(df)
+pd.concat(sens_list).to_csv("sensitivity_results.csv",index=False)
+
+# ================================================================
+# 7. PRCC / Spearman correlation
+# ================================================================
+# Define parameter bounds for PRCC, ensuring they are relevant to the model
+param_bounds={"A":(60,85),"fopt":(2000,8000),"t50":(2,12),"g":(0.8,1.3), "s":(0.1, 0.5), "gamma":(0.5, 1.5), "lambda_h":(0.01, 0.2)}
+N_samples=1000 # Renamed N to N_samples
+
+samples=pd.DataFrame({p:np.random.uniform(low,high,N_samples) for p,(low,high) in param_bounds.items()})
+# Include global_params in the samples DataFrame for the run_model function
+for k, v in global_params.items():
+    if k not in samples.columns:
+        samples[k] = v # Add global parameters as constant columns
+
+# Ensure 't50' column is renamed to 'time_param' before applying run_model
+if 't50' in samples.columns:
+    samples['time_param'] = samples.pop('t50')
+
+samples["pred"]=samples.apply(lambda r:run_model(r.to_dict()),axis=1)
+# Calculate correlation for the original parameter names
+rho={p:spearmanr(samples[p if p != 't50' else 'time_param'],samples["pred"])[0] for p in param_bounds}
+pd.DataFrame(list(rho.items()),columns=["param","spearman_r"]).to_csv("prcc_results.csv",index=False)
+
+# ================================================================
+# 8. Summary Output
+# ================================================================
+print("✅ Analysis complete. Files saved:")
+print("  - validation_studies_metadata.csv")
+print("  - loso_globals_results.csv")
+print("  - sensitivity_results.csv")
+print("  - prcc_results.csv")
+
+# ===========================================================
+# Figure S2: Model Robustness and Sensitivity Analysis
+# ===========================================================
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# --- Load results ---
+prcc = pd.read_csv("/content/prcc_results.csv")
+sens = pd.read_csv("/content/sensitivity_results.csv")
+loso = pd.read_csv("/content/loso_globals_results.csv")
+
+# --- Clean and prepare data ---
+# Remove unrealistic sensitivity outliers for better scaling
+sens = sens.rename(columns={"param": "Parameter", "delta": "ΔResponse (%)"})
+sens["ΔResponse (%)"] = sens["ΔResponse (%)"].clip(-200, 200)
+
+# Sort PRCC values for visual clarity
+prcc_sorted = prcc.sort_values("spearman_r", ascending=True)
+
+# --- Plot style ---
+plt.style.use("seaborn-v0_8-whitegrid")
+sns.set_context("talk", font_scale=1.1)
+sns.set_palette("crest")
+
+# --- Create composite figure ---
+fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+fig.suptitle("Figure S2. Model Robustness and Sensitivity Analysis",
+             fontsize=16, weight="bold", y=1.02)
+
+# -----------------------------------------------------------
+# (A) PRCC (Spearman correlation coefficients)
+# -----------------------------------------------------------
+sns.barplot(data=prcc_sorted, x="spearman_r", y="param",
+            palette="coolwarm", ax=axes[0])
+axes[0].set_xlim(-1, 1)
+axes[0].set_title("(A) Parameter influence (PRCC)", weight="bold")
+axes[0].set_xlabel("Spearman correlation (ρ)")
+axes[0].set_ylabel("Parameter")
+
+# -----------------------------------------------------------
+# (B) ±20 % sensitivity (OAT)
+# -----------------------------------------------------------
+sns.violinplot(data=sens, x="Parameter", y="ΔResponse (%)",
+               palette="mako", inner="box", ax=axes[1])
+axes[1].axhline(0, color="gray", linestyle="--", lw=1)
+axes[1].set_title("(B) One-at-a-time ± 20 % sensitivity", weight="bold")
+axes[1].set_xlabel("")
+axes[1].set_ylabel("Relative change in model output (%)")
+axes[1].set_ylim(-200, 200)
+
+# -----------------------------------------------------------
+# (C) LOSO global-parameter consistency
+# -----------------------------------------------------------
+sns.barplot(data=loso, x="HeldOut", y="TrainVar",
+            color="steelblue", ax=axes[2])
+axes[2].set_xticklabels(axes[2].get_xticklabels(),
+                        rotation=60, ha="right", fontsize=9)
+axes[2].set_title("(C) Global consistency (LOSO variance)", weight="bold")
+axes[2].set_xlabel("Study excluded")
+axes[2].set_ylabel("Variance across fits")
+
+# --- Layout and export ---
+plt.tight_layout(rect=[0, 0, 1, 0.95])
+plt.show()
+
+# Optional high-resolution export
+# fig.savefig("Figure_S2_Robustness.png", dpi=300, bbox_inches="tight")
+
+# ===========================================================
+# Figure S2: Parameter Influence (PRCC only)
+# ===========================================================
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# --- Load PRCC results ---
+prcc = pd.read_csv("/content/prcc_results.csv")
+
+# Sort parameters for visual clarity
+prcc = prcc.sort_values("spearman_r", ascending=True)
+
+# --- Plot style ---
+plt.style.use("seaborn-v0_8-whitegrid")
+sns.set_context("talk", font_scale=1.1)
+sns.set_palette("coolwarm")
+
+# --- Plot PRCC ---
+fig, ax = plt.subplots(figsize=(6, 6))
+sns.barplot(data=prcc, x="spearman_r", y="param", ax=ax,
+            palette="coolwarm", edgecolor="black")
+
+# --- Labels & title ---
+ax.set_xlim(-1, 1)
+ax.set_xlabel("Spearman correlation (ρ)", fontsize=16)
+ax.set_ylabel("Parameter", fontsize=16)
+
+plt.tight_layout()
+plt.show()
+
+# Optional high-res export
+# fig.savefig("Figure_S2_PRCC.png", dpi=300, bbox_inches="tight")
 
